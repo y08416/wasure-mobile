@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../shared/apis/supabase_client.dart';
+import '../feature/reminder/reminder.dart';
 
 class EventItemsApi {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -10,23 +11,30 @@ class EventItemsApi {
     String userId,
     DateTime? eventDate,
   ) async {
-    final eventResponse = await _supabase.from('Event').insert({
-      'name': eventName,
-      'user_id': userId,
-      'date': eventDate?.toIso8601String(),
-    }).select().single();
+    try {
+      final eventData = {
+        'name': eventName,
+        'reminder_date': eventDate?.toIso8601String(), // dateをreminder_dateに変更
+        'user_id': userId,
+      };
 
-    final itemResponses = await Future.wait(
-      itemNames.map((itemName) => _supabase.from('Item').insert({
-        'name': itemName,
-        'event_id': eventResponse['event_id'],
-      }).select().single()),
-    );
+      final eventResponse = await _supabase.from('Event').insert(eventData).select().single();
 
-    return {
-      'event': eventResponse,
-      'items': itemResponses,
-    };
+      final itemResponses = await Future.wait(
+        itemNames.map((itemName) => _supabase.from('Item').insert({
+          'name': itemName,
+          'event_id': eventResponse['event_id'],
+        }).select().single()),
+      );
+
+      return {
+        'event': eventResponse,
+        'items': itemResponses,
+      };
+    } catch (e) {
+      print('イベントとアイテムの追加中にエラーが発生しました: $e');
+      rethrow;
+    }
   }
 
   Future<List<Map<String, dynamic>>> getItemsForEvent(dynamic eventId, String userId) async {
@@ -46,24 +54,21 @@ class EventItemsApi {
 
   Future<List<Map<String, dynamic>>> getEventsWithItems(String userId) async {
     try {
-      final events = await _supabase
+      final response = await _supabase
           .from('Event')
-          .select<List<Map<String, dynamic>>>()
-          .eq('user_id', userId);
+          .select('event_id, name, reminder_date, Item(*)')
+          .eq('user_id', userId)
+          .order('reminder_date', ascending: true);
 
-      final eventsWithItems = await Future.wait(events.map((event) async {
-        final items = await _supabase
-            .from('Item')
-            .select<List<Map<String, dynamic>>>()
-            .eq('event_id', event['event_id']);
-
+      // レスポンスを適切な形式に変換
+      return (response as List<dynamic>).map((event) {
         return {
-          ...event,
-          'items': items,
+          'event_id': event['event_id'],
+          'name': event['name'],
+          'reminder_date': event['reminder_date'],
+          'Item': event['Item'] as List<dynamic>,
         };
-      }));
-
-      return eventsWithItems.cast<Map<String, dynamic>>();
+      }).toList();
     } catch (e) {
       print('イベントとアイテムの取得中にエラーが発生しました: $e');
       rethrow;
@@ -73,14 +78,14 @@ class EventItemsApi {
   Future<List<Map<String, dynamic>>> getEvents(String userId) async {
     final response = await _supabase
         .from('Event')
-        .select('event_id, name, date')
+        .select('event_id, name, reminder_date')
         .eq('user_id', userId);
 
     return (response as List<dynamic>).map((event) {
       return {
         'event_id': event['event_id'],
         'name': event['name'],
-        'date': event['date'],
+        'reminder_date': event['reminder_date'],
       };
     }).toList();
   }
@@ -88,11 +93,11 @@ class EventItemsApi {
   Future<void> updateEventDate(int eventId, DateTime? newDate) async {
     await _supabase
         .from('Event')
-        .update({'date': newDate?.toIso8601String()})
+        .update({'reminder_date': newDate?.toIso8601String()})
         .eq('event_id', eventId);
   }
 
-  Future<void> updateReminderDate(String reminderId, DateTime newDateTime) async {
+  Future<void> updateReminderDate(String reminderId, DateTime newDate) async {
     try {
       // reminderId（item_id）から対応するevent_idを取得
       final item = await _supabase
@@ -106,8 +111,10 @@ class EventItemsApi {
       // Eventテーブルの日付を更新
       await _supabase
           .from('Event')
-          .update({'date': newDateTime.toIso8601String()})
+          .update({'reminder_date': newDate.toIso8601String()}) // dateをreminder_dateに変更
           .eq('event_id', eventId);
+
+      print('リマインダーの日時を更新しました: $reminderId, $newDate');
     } catch (e) {
       print('リマインダーの日時更新中にエラーが発生しました: $e');
       rethrow;
@@ -137,5 +144,10 @@ class EventItemsApi {
       print('未完了のリマインダーの取得中にエラーが発生しました: $e');
       rethrow;
     }
+  }
+
+  String _formatTime(DateTime? date) {
+    if (date == null) return '';
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

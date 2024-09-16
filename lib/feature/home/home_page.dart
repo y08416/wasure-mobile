@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:wasure_mobaile_futter/feature/home/components/home_card.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/item_list_page.dart'; // 新しいインポート
 import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+
 
 
 
@@ -52,7 +54,7 @@ class _HomePageState extends State<HomePage> {
               HomeCard(
                 key: UniqueKey(), // ユニークなキーを追加
                 title: 'リマインド', // 更新された文字列
-                icon: Icons.alarm,
+                icon: LucideIcons.bell,
                 color: Colors.red,
                 onTap: () {
                   Navigator.push(

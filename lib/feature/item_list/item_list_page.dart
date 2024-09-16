@@ -89,15 +89,15 @@ class _ItemListPageState extends State<ItemListPage> {
                       return ListTile(
                         title: Text(event['name']),
                         subtitle: Text(
-                          '日付: ${event['date'] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(event['date'])) : '未設定'}',
+                          '日付: ${event['reminder_date'] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(event['reminder_date'])) : '未設定'}',
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.calendar_today),
                           onPressed: () async {
                             final DateTime? pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: event['date'] != null
-                                  ? DateTime.parse(event['date'])
+                              initialDate: event['reminder_date'] != null
+                                  ? DateTime.parse(event['reminder_date'])
                                   : DateTime.now(),
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2101),

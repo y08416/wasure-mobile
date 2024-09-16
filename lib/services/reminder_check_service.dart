@@ -32,7 +32,8 @@ class ReminderCheckService {
         }
       }
     } catch (e) {
-      print('リマインダーのチェック中にエラーが発生しました: $e');
+      print('リマインダ���のチェック中にエラーが発生しました: $e');
     }
   }
+  
 }

@@ -5,11 +5,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../apis/event_items_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:wasure_mobaile_futter/services/notification_service.dart';
 
 class Reminder {
   final String id;
   final String eventName;
-  DateTime? date;  // finalを削除
+  DateTime? date;
   final String time;
   bool isCompleted;
   final String category;
@@ -51,6 +52,12 @@ class _ReminderPageState extends State<ReminderPage> {
     _loadReminders();
   }
 
+  @override
+  void didUpdateWidget(covariant ReminderPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadReminders();
+  }
+
   Future<void> _loadReminders() async {
     setState(() {
       _isLoading = true;
@@ -68,18 +75,18 @@ class _ReminderPageState extends State<ReminderPage> {
       for (var event in eventsWithItems) {
         final eventId = event['event_id'];
         final eventName = event['name'];
-        final eventDateStr = event['date'];
+        final eventDateStr = event['reminder_date'];
         DateTime? eventDate;
         if (eventDateStr != null) {
           eventDate = DateTime.parse(eventDateStr);
         }
-        for (var item in event['items']) {
+        for (var item in event['Item']) {
           loadedReminders.add(Reminder(
             id: item['item_id'].toString(),
             eventName: eventName,
             date: eventDate,
             time: _formatTime(eventDate),
-            isCompleted: item['is_completed'] ?? false,
+            isCompleted: item['is_checked'] ?? false,
             category: item['category'] ?? 'other',
           ));
         }
@@ -249,7 +256,7 @@ class _ReminderPageState extends State<ReminderPage> {
     setState(() {
       reminder.isCompleted = !reminder.isCompleted;
     });
-    // ここでデータベースの更新処理を追加する必要があます
+    // ここでデータベースの更新処理を追加する必要があります
     // 例: await _eventItemsApi.updateReminderStatus(reminder.id, reminder.isCompleted);
   }
 
@@ -276,8 +283,24 @@ class _ReminderPageState extends State<ReminderPage> {
         setState(() {
           reminder.date = newDateTime;
         });
-        // ここでデータベースの更新処理を追加する必要があります
-        // 例: await _eventItemsApi.updateReminderDate(reminder.id, newDateTime);
+        try {
+          await _eventItemsApi.updateReminderDate(reminder.id, newDateTime);
+          print('リマインダーの日時を更新しました: ${reminder.id}, $newDateTime');
+          
+          // 通知をスケジュール
+          await NotificationService().scheduleNotification(
+            int.parse(reminder.id),
+            'リマインダー',
+            '${reminder.eventName}の確認をお願いします。',
+            newDateTime,
+          );
+          print('通知をスケジュールしました: ${reminder.id}, $newDateTime');
+        } catch (e) {
+          print('リマインダーの日時更新中にエラーが発生しました: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('リマインダーの更新に失敗しました: $e')),
+          );
+        }
       }
     }
   }
