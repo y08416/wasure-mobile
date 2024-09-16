@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class HomeCard extends StatelessWidget {
   final String title;
-  final IconData icon;
+  final String iconPath;
   final Color color;
   final VoidCallback onTap;
   final double? width;
@@ -11,7 +11,7 @@ class HomeCard extends StatelessWidget {
   const HomeCard({
     Key? key,
     required this.title,
-    required this.icon,
+    required this.iconPath,
     required this.color,
     required this.onTap,
     this.width,
@@ -35,7 +35,12 @@ class HomeCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 40, color: color),
+                Image.asset(
+                  iconPath,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.contain,
+                ),
                 SizedBox(height: 8),
                 Text(
                   title,

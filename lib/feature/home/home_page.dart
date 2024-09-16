@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wasure_mobaile_futter/feature/home/components/home_card.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/item_list_page.dart'; // 新しいインポート
 import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
-
-
-
-// HomePage クラスの定義
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
 
@@ -19,7 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  
+
   List<Widget>? _widgetOptions;
 
   @override
@@ -48,13 +43,13 @@ class _HomePageState extends State<HomePage> {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.75, // この値を0.5に変更して高さを2倍に
+              childAspectRatio: 0.75, // 高さを調整
             ),
             delegate: SliverChildListDelegate([
               HomeCard(
                 key: UniqueKey(), // ユニークなキーを追加
-                title: 'リマインド', // 更新された文字列
-                icon: LucideIcons.bell,
+                title: 'リマインド',
+                iconPath: 'assets/bell.png', // PNGアイコンのパス
                 color: Colors.red,
                 onTap: () {
                   Navigator.push(
@@ -65,7 +60,7 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeCard(
                 title: '持ち物追加',
-                icon: Icons.business_center,
+                iconPath: 'assets/travel-agency.png',
                 color: Colors.blue,
                 onTap: () {
                   // 持ち物リストへのナビゲーション
@@ -77,7 +72,7 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeCard(
                 title: '共同',
-                icon: Icons.wifi,
+                iconPath: 'assets/setting.png', // PNGアイコンのパス（仮）
                 color: Colors.green,
                 onTap: () {
                   // 共同機能へのナビゲーション
@@ -85,7 +80,7 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeCard(
                 title: '設定',
-                icon: Icons.settings,
+                iconPath: 'assets/setting.png', // PNGアイコンのパス
                 color: Colors.orange,
                 onTap: () {
                   // 設定画面へのナビゲーション
