@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wasure_mobaile_futter/feature/home/components/home_card.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/item_list_page.dart'; // 新しいインポート
+import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
+
 
 
 // HomePage クラスの定義
@@ -53,7 +55,10 @@ class _HomePageState extends State<HomePage> {
                 icon: Icons.alarm,
                 color: Colors.red,
                 onTap: () {
-                  // リマインド機能へのナビゲーション
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ReminderPage()),
+                  );
                 },
               ),
               HomeCard(
