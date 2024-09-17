@@ -96,27 +96,18 @@ class EventItemsApi {
         .eq('event_id', eventId);
   }
 
-  Future<void> updateReminderDate(String reminderId, DateTime newDate) async {
+  Future<bool> updateReminderDate(String eventId, DateTime newDateTime) async {
     try {
-      // reminderId（item_id）から対応するevent_idを取得
-      final item = await _supabase
-          .from('Item')
-          .select('event_id')
-          .eq('item_id', reminderId)
-          .single();
-      
-      final eventId = item['event_id'];
-
-      // Eventテーブルの日付を更新
-      await _supabase
+      final response = await _supabase
           .from('Event')
-          .update({'reminder_date': newDate.toIso8601String()}) // dateをreminder_dateに変更
-          .eq('event_id', eventId);
+          .update({'reminder_date': newDateTime.toIso8601String()})
+          .eq('event_id', eventId)
+          .select();
 
-      print('リマインダーの日時を更新しました: $reminderId, $newDate');
+      return response.isNotEmpty;
     } catch (e) {
       print('リマインダーの日時更新中にエラーが発生しました: $e');
-      rethrow;
+      return false;
     }
   }
 

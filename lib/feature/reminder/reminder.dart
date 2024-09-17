@@ -38,15 +38,8 @@ class _ReminderPageState extends State<ReminderPage> {
   final SupabaseClient _supabase = Supabase.instance.client;
   final NotificationService _notificationService = NotificationService();
 
-  List<Reminder> reminders = [];
+  Map<String, Reminder> eventReminders = {};
   bool _isLoading = true;
-
-  final Map<String, String> categoryEmoji = {
-    'work': '💼',
-    'personal': '🌸',
-    'health': '🏥',
-    'other': '🎵',
-  };
 
   @override
   void initState() {
@@ -73,29 +66,29 @@ class _ReminderPageState extends State<ReminderPage> {
 
       final eventsWithItems = await _eventItemsApi.getEventsWithItems(userId);
 
-      List<Reminder> loadedReminders = [];
+      Map<String, Reminder> loadedEventReminders = {};
       for (var event in eventsWithItems) {
-        final eventId = event['event_id'];
+        final eventId = event['event_id'].toString();
         final eventName = event['name'];
         final eventDateStr = event['reminder_date'];
         DateTime? eventDate;
         if (eventDateStr != null) {
           eventDate = DateTime.parse(eventDateStr);
         }
-        for (var item in event['Item']) {
-          loadedReminders.add(Reminder(
-            id: item['item_id'].toString(),
-            eventName: eventName,
-            date: eventDate,
-            time: _formatTime(eventDate),
-            isCompleted: item['is_checked'] ?? false,
-            category: item['category'] ?? 'other',
-          ));
-        }
+
+        // イベントごとに1つのリマインダーを作成
+        loadedEventReminders[eventId] = Reminder(
+          id: eventId,
+          eventName: eventName,
+          date: eventDate,
+          time: _formatTime(eventDate),
+          isCompleted: false, // イベント全体の完了状態は別途管理する必要があります
+          category: 'other', // カテゴリーはイベント全体で1つにする必要があります
+        );
       }
 
       setState(() {
-        reminders = loadedReminders;
+        eventReminders = loadedEventReminders;
         _isLoading = false;
       });
     } catch (e) {
@@ -112,141 +105,6 @@ class _ReminderPageState extends State<ReminderPage> {
   String _formatTime(DateTime? date) {
     if (date == null) return '';
     return DateFormat('HH:mm').format(date);
-  }
-
-  Future<void> showAddReminderDialog() async {
-    final TextEditingController eventNameController = TextEditingController();
-    final TextEditingController dateController = TextEditingController();
-    final TextEditingController timeController = TextEditingController();
-    String selectedCategory = 'work';
-    DateTime? selectedDate;
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('新しいリマインダーを追加'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: eventNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'イベント名',
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: dateController,
-                  decoration: const InputDecoration(
-                    labelText: '日付 (例: 2024-09-20)',
-                  ),
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    final DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null) {
-                      selectedDate = pickedDate;
-                      dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
-                    }
-                  },
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: timeController,
-                  decoration: const InputDecoration(
-                    labelText: '時間 (例: 15:30)',
-                  ),
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      timeController.text = pickedTime.format(context);
-                    }
-                  },
-                ),
-                SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'カテゴリ',
-                  ),
-                  items: categoryEmoji.keys.map((String category) {
-                    return DropdownMenuItem<String>(
-                      value: category,
-                      child: Text('${categoryEmoji[category]} $category'),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        selectedCategory = newValue;
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('キャンセル'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
-              ),
-              child: const Text('追加'),
-              onPressed: () async {
-                if (eventNameController.text.isNotEmpty &&
-                    dateController.text.isNotEmpty &&
-                    timeController.text.isNotEmpty) {
-                  try {
-                    final userId = _supabase.auth.currentUser?.id;
-                    if (userId == null) {
-                      throw Exception('ユーザーが認証されていません');
-                    }
-
-                    final newEventName = eventNameController.text;
-                    final newItemNames = [eventNameController.text];
-                    final newEventDate = selectedDate;
-
-                    await _eventItemsApi.addEventAndItems(
-                      newEventName,
-                      newItemNames,
-                      userId,
-                      newEventDate,
-                    );
-
-                    _loadReminders();
-                    Navigator.of(context).pop();
-                  } catch (e) {
-                    print('リマインダーの追加中にエラーが発生しました: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('リマインダーの追加中にエラーが発生しました: $e')),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _getCategoryIcon(String category) {
-    return categoryEmoji[category] ?? '🎵';
   }
 
   String _formatDateTime(DateTime? date) {
@@ -282,13 +140,17 @@ class _ReminderPageState extends State<ReminderPage> {
           pickedTime.hour,
           pickedTime.minute,
         );
-        setState(() {
-          reminder.date = newDateTime;
-        });
         try {
-          await _eventItemsApi.updateReminderDate(reminder.id, newDateTime);
-          print('リマインダーの日時を更新しました: ${reminder.id}, $newDateTime');
-          await _scheduleNotification(reminder, newDateTime);
+          final updated = await _eventItemsApi.updateReminderDate(reminder.id, newDateTime);
+          if (updated) {
+            setState(() {
+              reminder.date = newDateTime;
+            });
+            print('リマインダーの日時を更新しました: ${reminder.id}, $newDateTime');
+            await _scheduleNotification(reminder, newDateTime);
+          } else {
+            throw Exception('リマインダーの更新に失敗しました');
+          }
         } catch (e) {
           print('リマインダーの日時更新中にエラーが発生しました: $e');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -306,9 +168,9 @@ class _ReminderPageState extends State<ReminderPage> {
       
       // 更新が成功したら、ローカルのリマインダーストも更新します
       setState(() {
-        final reminderIndex = reminders.indexWhere((r) => r.id == reminderId);
+        final reminderIndex = eventReminders.values.toList().indexWhere((r) => r.id == reminderId);
         if (reminderIndex != -1) {
-          reminders[reminderIndex].date = newDateTime;
+          eventReminders.values.toList()[reminderIndex].date = newDateTime;
         }
       });
     } catch (e) {
@@ -361,75 +223,66 @@ class _ReminderPageState extends State<ReminderPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'リマインダー',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.pink,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(LucideIcons.plus, color: Colors.pink),
-                      onPressed: showAddReminderDialog,
-                    ),
-                  ],
+                const Text(
+                  'リマインダー',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pink,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ListView.builder(
-                          itemCount: reminders.length,
+                          itemCount: eventReminders.length,
                           itemBuilder: (context, index) {
-                            final reminder = reminders[index];
+                            final reminder = eventReminders.values.elementAt(index);
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
-                              child: AnimatedReminderCard(
-                                onTap: () {
-                                  // ここにカードをタップしたときの処理を追加
-                                  print('Tapped');
-                                },
-                                child: ListTile(
-                                  leading: GestureDetector(
-                                    onTap: () => _toggleReminder(reminder),
-                                    child: Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        color: reminder.isCompleted ? Colors.green[100] : Colors.pink[100],
-                                        shape: BoxShape.circle,
+                              child: SizedBox(
+                                height: 88, // ここでカードの高さを指定
+                                width: 100,
+                                child: AnimatedReminderCard(
+                                  onTap: () {
+                                    print('Tapped event: ${reminder.id}');
+                                  },
+                                  child: ListTile(
+                                    leading: GestureDetector(
+                                      onTap: () => _toggleReminder(reminder),
+                                      child: Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: reminder.isCompleted ? Colors.green[100] : Colors.pink[100],
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: reminder.isCompleted
+                                              ? Icon(LucideIcons.bell, color: Colors.green, size: 30)
+                                              : Icon(LucideIcons.bell, color: Colors.pink, size: 30), // カテゴリーアイコンの代わりにベルアイコンを使用
+                                        ),
                                       ),
-                                      child: Center(
-                                        child: reminder.isCompleted
-                                            ? Icon(LucideIcons.bell, color: Colors.green, size: 30)
-                                            : Text(
-                                                _getCategoryIcon(reminder.category),
-                                                style: const TextStyle(fontSize: 30),
-                                              ),
+                                    ),
+                                    title: Text(
+                                      reminder.eventName,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ),
-                                  title: Text(
-                                    reminder.eventName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
+                                    subtitle: Text(
+                                      _formatDateTime(reminder.date),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    _formatDateTime(reminder.date),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
+                                    trailing: IconButton(
+                                      icon: Icon(LucideIcons.calendar, color: Colors.pink),
+                                      onPressed: () => _showDateTimePicker(reminder),
                                     ),
-                                  ),
-                                  trailing: IconButton(
-                                    icon: Icon(LucideIcons.calendar, color: Colors.pink),
-                                    onPressed: () => _showDateTimePicker(reminder),
                                   ),
                                 ),
                               ),
