@@ -7,6 +7,7 @@ import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/add_event_item_list_page.dart';
 import '../../apis/event_items_api.dart';
 import 'package:intl/intl.dart';
+import 'package:wasure_mobaile_futter/feature/get_item_list/get_item_list.dart';
 
 class ItemListPage extends StatefulWidget {
   const ItemListPage({Key? key}) : super(key: key);
@@ -91,21 +92,37 @@ class _ItemListPageState extends State<ItemListPage> {
                         subtitle: Text(
                           '日付: ${event['reminder_date'] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(event['reminder_date'])) : '未設定'}',
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () async {
-                            final DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: event['reminder_date'] != null
-                                  ? DateTime.parse(event['reminder_date'])
-                                  : DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2101),
-                            );
-                            if (pickedDate != null) {
-                              _updateEventDate(event['event_id'], pickedDate);
-                            }
-                          },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.calendar_today),
+                              onPressed: () async {
+                                final DateTime? pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: event['reminder_date'] != null
+                                      ? DateTime.parse(event['reminder_date'])
+                                      : DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (pickedDate != null) {
+                                  _updateEventDate(event['event_id'], pickedDate);
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => GetItemListPage(eventId: int.parse(event['event_id'].toString())),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       );
                     },

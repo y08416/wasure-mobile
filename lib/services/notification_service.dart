@@ -51,7 +51,6 @@ class NotificationService {
       print('通知がスケジュールされました: $id, $title, $scheduledDate');
     } catch (e) {
       print('通知のスケジューリング中にエラーが発生しました: $e');
-      // ここでエラーを再スローするか、適切に処理してください
     }
   }
 
@@ -71,7 +70,7 @@ class NotificationService {
       iOS: iOSPlatformChannelSpecifics,
     );
     await flutterLocalNotificationsPlugin.show(
-      0, // 通知ID（一意である必要があります）
+      0, // 通知ID
       title,
       body,
       platformChannelSpecifics,

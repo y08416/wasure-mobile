@@ -37,17 +37,16 @@ class EventItemsApi {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getItemsForEvent(dynamic eventId, String userId) async {
+  Future<List<Map<String, dynamic>>> getItemsForEvent(int eventId, String userId) async {
     final response = await _supabase
-        .from('event_items')
-        .select('item_id, items(name)')
-        .eq('event_id', eventId)
-        .eq('user_id', userId);
+        .from('Item')
+        .select('item_id, name')
+        .eq('event_id', eventId);
 
     return (response as List<dynamic>).map((item) {
       return {
         'item_id': item['item_id'],
-        'name': item['items']['name'],
+        'name': item['name'],
       };
     }).toList();
   }
@@ -121,29 +120,25 @@ class EventItemsApi {
     }
   }
 
-  Future<List<Reminder>> getUncompletedReminders() async {
-    try {
-      final response = await _supabase
-          .from('Event')
-          .select('*, Item(*)')
-          .eq('Item.is_checked', false)
-          .order('date', ascending: true);
+  Future<List<Map<String, dynamic>>> getUncompletedReminders() async {
+    final response = await _supabase
+      .from('Event')
+      .select('''
+        event_id,
+        name,
+        reminder_date,
+        Item (
+          item_id,
+          is_checked
+        )
+      ''')
+      .not('reminder_date', 'is', null)
+      .order('reminder_date');
 
-      return response.map((event) {
-        final items = event['Item'] as List;
-        return items.map((item) => Reminder(
-          id: item['item_id'].toString(),
-          eventName: event['name'],
-          date: DateTime.parse(event['date']),
-          time: _formatTime(DateTime.parse(event['date'])),
-          isCompleted: item['is_checked'] ?? false,
-          category: item['category'] ?? 'other',
-        )).toList();
-      }).expand((i) => i).toList();
-    } catch (e) {
-      print('未完了のリマインダーの取得中にエラーが発生しました: $e');
-      rethrow;
-    }
+    return response.where((event) {
+      // イベントに紐づく全てのアイテムがチェックされていない場合のみ、未完了とする
+      return (event['Item'] as List).any((item) => item['is_checked'] != true);
+    }).toList();
   }
 
   String _formatTime(DateTime? date) {

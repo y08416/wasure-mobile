@@ -24,15 +24,16 @@ class ReminderCheckService {
     try {
       final reminders = await _eventItemsApi.getUncompletedReminders();
       for (final reminder in reminders) {
-        if (!reminder.isCompleted) {
+        final eventDate = DateTime.parse(reminder['reminder_date']);
+        if (eventDate.isBefore(DateTime.now())) {
           await _notificationService.showNotification(
             'リマインダー',
-            '${reminder.eventName}の確認をお願いします。',
+            '${reminder['name']}の確認をお願いします。',
           );
         }
       }
     } catch (e) {
-      print('リマインダ���のチェック中にエラーが発生しました: $e');
+      print('リマインダーのチェック中にエラーが発生しました: $e');
     }
   }
   
