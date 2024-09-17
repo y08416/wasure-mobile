@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../apis/event_items_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wasure_mobaile_futter/services/notification_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class Reminder {
   final String id;
@@ -35,6 +36,7 @@ class ReminderPage extends StatefulWidget {
 class _ReminderPageState extends State<ReminderPage> {
   final EventItemsApi _eventItemsApi = EventItemsApi();
   final SupabaseClient _supabase = Supabase.instance.client;
+  final NotificationService _notificationService = NotificationService();
 
   List<Reminder> reminders = [];
   bool _isLoading = true;
@@ -288,13 +290,7 @@ class _ReminderPageState extends State<ReminderPage> {
           print('リマインダーの日時を更新しました: ${reminder.id}, $newDateTime');
           
           // 通知をスケジュール
-          await NotificationService().scheduleNotification(
-            int.parse(reminder.id),
-            'リマインダー',
-            '${reminder.eventName}の確認をお願いします。',
-            newDateTime,
-          );
-          print('通知をスケジュールしました: ${reminder.id}, $newDateTime');
+          await _scheduleNotification(reminder, newDateTime);
         } catch (e) {
           print('リマインダーの日時更新中にエラーが発生しました: $e');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -322,6 +318,29 @@ class _ReminderPageState extends State<ReminderPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('リマインダーの日時更新中にエラーが発生しました: $e')),
       );
+    }
+  }
+
+  Future<void> _scheduleNotification(Reminder reminder, DateTime newDateTime) async {
+    try {
+      final eventId = int.tryParse(reminder.id);
+      if (eventId == null) {
+        print('無効なリマインダーID: ${reminder.id}');
+        return;
+      }
+
+      final scheduledDate = tz.TZDateTime.from(newDateTime, tz.local);
+
+      await _notificationService.scheduleNotification(
+        'リマインダー',
+        '${reminder.eventName}の確認をお願いします。',
+        eventId,
+        scheduledDate,
+      );
+
+      print('通知がスケジュールされました: $scheduledDate');
+    } catch (e) {
+      print('通知のスケジューリング中にエラーが発生しました: $e');
     }
   }
 

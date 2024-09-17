@@ -7,6 +7,7 @@ import 'services/notification_service.dart';
 import 'package:wasure_mobaile_futter/services/reminder_check_service.dart';
 import 'package:wasure_mobaile_futter/services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'services/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NavigationService.navigatorKey,
       title: 'Brand.ai',
       theme: ThemeData(
         primarySwatch: Colors.blue,

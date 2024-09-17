@@ -1,19 +1,13 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter/material.dart';
+import '../services/navigation_service.dart';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
-  NotificationService._internal();
-
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    // タイムゾーンの設定は main.dart で行うため、ここでは行わない
-    tz.setLocalLocation(tz.getLocation('Asia/Tokyo')); // 日本のタイムゾーンを設定
-
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsIOS =
@@ -26,36 +20,46 @@ class NotificationService {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await _flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
+    );
   }
 
-  Future<void> scheduleNotification(int id, String title, String body, DateTime scheduledDate) async {
-    try {
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        tz.TZDateTime.from(scheduledDate, tz.local),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'reminder_channel',
-            'Reminders',
-            importance: Importance.max,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
-        ),
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      );
-      print('通知がスケジュールされました: $id, $title, $scheduledDate');
-    } catch (e) {
-      print('通知のスケジューリング中にエラーが発生しました: $e');
+  Future<void> scheduleNotification(
+    String title,
+    String body,
+    int eventId,
+    tz.TZDateTime scheduledDate,
+  ) async {
+    final now = tz.TZDateTime.now(scheduledDate.location);
+    if (scheduledDate.isBefore(now)) {
+      print('指定された日時が過去のため、通知をスケジュールできません: ${scheduledDate.toString()}');
+      return;
     }
+
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      eventId,
+      title,
+      body,
+      scheduledDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminder_channel',
+          'Reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: eventId.toString(),
+    );
+    print('通知がスケジュールされました: ${scheduledDate.toString()}');
   }
 
-  // 新しく追加するメソッド
-  Future<void> showNotification(String title, String body) async {
+  Future<void> showNotification(String title, String body, int eventId) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'reminder_channel',
@@ -63,17 +67,27 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails();
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-    await flutterLocalNotificationsPlugin.show(
-      0, // 通知ID
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await _flutterLocalNotificationsPlugin.show(
+      0,
       title,
       body,
       platformChannelSpecifics,
+      payload: eventId.toString(),
     );
+  }
+
+  void _onDidReceiveNotificationResponse(NotificationResponse response) {
+    final String? payload = response.payload;
+    print('通知がタップされました。ペイロード: $payload'); // デバッグ出力を追加
+    if (payload != null) {
+      _handleNotificationTap(int.parse(payload));
+    }
+  }
+
+  void _handleNotificationTap(int eventId) {
+    print('_handleNotificationTap が呼び出されました。eventId: $eventId'); // デバッグ出力を追加
+    NavigationService.navigateToGetItemListPage(eventId);
   }
 }
