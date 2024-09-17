@@ -288,8 +288,6 @@ class _ReminderPageState extends State<ReminderPage> {
         try {
           await _eventItemsApi.updateReminderDate(reminder.id, newDateTime);
           print('リマインダーの日時を更新しました: ${reminder.id}, $newDateTime');
-          
-          // 通知をスケジュール
           await _scheduleNotification(reminder, newDateTime);
         } catch (e) {
           print('リマインダーの日時更新中にエラーが発生しました: $e');
@@ -329,16 +327,15 @@ class _ReminderPageState extends State<ReminderPage> {
         return;
       }
 
-      final scheduledDate = tz.TZDateTime.from(newDateTime, tz.local);
-
       await _notificationService.scheduleNotification(
-        'リマインダー',
-        '${reminder.eventName}の確認をお願いします。',
-        eventId,
-        scheduledDate,
+        id: eventId,
+        title: 'リマインダー',
+        body: '${reminder.eventName}の確認をお願いします。',
+        scheduledDate: tz.TZDateTime.from(newDateTime, tz.local),
+        payload: reminder.id,
       );
 
-      print('通知がスケジュールされました: $scheduledDate');
+      print('通知のスケジューリングが完了しました');
     } catch (e) {
       print('通知のスケジューリング中にエラーが発生しました: $e');
     }

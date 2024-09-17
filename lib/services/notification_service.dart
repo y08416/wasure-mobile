@@ -1,52 +1,55 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter/material.dart';
 import '../services/navigation_service.dart';
 
 class NotificationService {
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+        DarwinInitializationSettings();
     final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
-    await _flutterLocalNotificationsPlugin.initialize(
+
+    await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
     );
   }
 
-  Future<void> scheduleNotification(
-    String title,
-    String body,
-    int eventId,
-    tz.TZDateTime scheduledDate,
-  ) async {
-    final now = tz.TZDateTime.now(scheduledDate.location);
-    if (scheduledDate.isBefore(now)) {
-      print('指定された日時が過去のため、通知をスケジュールできません: ${scheduledDate.toString()}');
-      return;
-    }
+  Future<void> setOnNotificationTap(Function(String?) onTap) async {
+    await flutterLocalNotificationsPlugin.initialize(
+      InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) {
+        onTap(notificationResponse.payload);
+      },
+    );
+  }
 
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
-      eventId,
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
       title,
       body,
-      scheduledDate,
-      const NotificationDetails(
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      NotificationDetails(
         android: AndroidNotificationDetails(
-          'reminder_channel',
-          'Reminders',
+          'your_channel_id',
+          'your_channel_name',
+          channelDescription: 'your_channel_description',
           importance: Importance.max,
           priority: Priority.high,
         ),
@@ -54,40 +57,45 @@ class NotificationService {
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      payload: eventId.toString(),
+      payload: payload,
     );
-    print('通知がスケジュールされました: ${scheduledDate.toString()}');
   }
 
-  Future<void> showNotification(String title, String body, int eventId) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'reminder_channel',
-      'Reminders',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-    await _flutterLocalNotificationsPlugin.show(
-      0,
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+    required int eventId,
+  }) async {
+    await flutterLocalNotificationsPlugin.show(
+      id,
       title,
       body,
-      platformChannelSpecifics,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'your_channel_id',
+          'your_channel_name',
+          channelDescription: 'your_channel_description',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
       payload: eventId.toString(),
     );
   }
 
-  void _onDidReceiveNotificationResponse(NotificationResponse response) {
-    final String? payload = response.payload;
-    print('通知がタップされました。ペイロード: $payload'); // デバッグ出力を追加
-    if (payload != null) {
-      _handleNotificationTap(int.parse(payload));
+    void _onDidReceiveNotificationResponse(NotificationResponse response) {
+        print('通知タップ時のコールバックが呼ばれました。');
+        final String? payload = response.payload;
+        print('通知がタップされました。ペイロード: $payload');
+        if (payload != null) {
+            _handleNotificationTap(int.parse(payload));
+        }
     }
-  }
 
-  void _handleNotificationTap(int eventId) {
-    print('_handleNotificationTap が呼び出されました。eventId: $eventId'); // デバッグ出力を追加
-    NavigationService.navigateToGetItemListPage(eventId);
-  }
+ void _handleNotificationTap(int eventId) {
+  print('_handleNotificationTap が呼び出されました。eventId: $eventId');
+  NavigationService.navigateToGetItemListPage(eventId);
+}
+
 }

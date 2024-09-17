@@ -20,7 +20,8 @@ class _GetItemListPageState extends State<GetItemListPage> {
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    print('GetItemListPage が初期化されました。eventId: ${widget.eventId}'); // デバッグ出力を追加
+    _loadItems(); // initState()でアイテムを読み込む
   }
 
   Future<void> _loadItems() async {
@@ -48,20 +49,22 @@ class _GetItemListPageState extends State<GetItemListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('イベントの持ち物リスト'),
+        title: Text('アイテムリスト'),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _items.length,
-              itemBuilder: (context, index) {
-                final item = _items[index];
-                return ListTile(
-                  title: Text(item['name']),
-                  subtitle: Text('アイテムID: ${item['item_id']}'),
-                );
-              },
-            ),
+          : _items.isEmpty
+              ? Center(child: Text('アイテムがありません'))
+              : ListView.builder(
+                  itemCount: _items.length,
+                  itemBuilder: (context, index) {
+                    final item = _items[index];
+                    return ListTile(
+                      title: Text(item['name'] ?? '名称なし'),
+                      subtitle: Text(item['description'] ?? '説明なし'),
+                    );
+                  },
+                ),
     );
   }
 }

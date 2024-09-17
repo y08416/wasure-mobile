@@ -30,9 +30,10 @@ class ReminderCheckService {
         final eventDate = DateTime.parse(reminder['reminder_date']);
         if (eventDate.isBefore(DateTime.now())) {
           await _notificationService.showNotification(
-            'リマインダー',
-            '${reminder['name']}の確認をお願いします。',
-            reminder['event_id'],
+            id: reminder['id'] ?? 0, // リマインダーのIDを使用
+            title: '通知タイトル',
+            body: '通知本文',
+            eventId: reminder['event_id'] ?? 0, // イベントのIDを渡す
           );
         }
       }
@@ -55,17 +56,37 @@ class ReminderCheckService {
     if (eventDate.isAfter(now)) {
       try {
         await _notificationService.scheduleNotification(
-          'リマインダー',
-          '${reminder['name']}の確認をお願いします。',
-          reminder['event_id'],
-          eventDate,
+          id: 0, // または適切なID
+          title: '通知タイトル',
+          body: '通知本文',
+          scheduledDate: eventDate,
+          payload: 'ペイロード',
         );
         print('通知がスケジュールされました: ${eventDate.toString()}');
       } catch (e) {
-        print('通知のスケジューリング中にエラーが発生しました: $e');
+        print('通知のスケジューリング中にエラーが発生しまし: $e');
       }
     } else {
       print('スケジュールされた日時が過去のため、通知はスケジュールされませんでした: ${eventDate.toString()}');
+    }
+  }
+
+  Future<void> checkAndNotify() async {
+    try {
+      final reminders = await _eventItemsApi.getUncompletedReminders();
+      for (var reminder in reminders) {
+        // eventIdを取得する方法を適切に修正
+        int eventId = reminder['event_id'] ?? 0; // 仮の実装。実際のデータ構造に合わせて修正してください。
+
+        await _notificationService.showNotification(
+          id: reminder['id'] ?? 0,
+          title: '通知タイトル',
+          body: '通知本文',
+          eventId: eventId,
+        );
+      }
+    } catch (e) {
+      print('リマインダーのチェック中にエラーが発生しました: $e');
     }
   }
 }
