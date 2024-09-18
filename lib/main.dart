@@ -4,69 +4,27 @@ import 'feature/auth/sign_up_page.dart';
 import 'feature/home/home_page.dart';
 import 'shared/apis/supabase_client.dart';
 import 'services/notification_service.dart';
-import 'package:wasure_mobaile_futter/services/reminder_check_service.dart';
-import 'package:wasure_mobaile_futter/services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'services/navigation_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:wasure_mobaile_futter/feature/get_item_list/get_item_list.dart'; // GetItemListPageをインポート
+import 'feature/get_item_list/get_item_list.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
 
-  final notificationService = NotificationService();
-  await notificationService.init();
+  await dotenv.load(fileName: ".env");
 
-  final NotificationAppLaunchDetails? notificationAppLaunchDetails =
-      await notificationService.flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
 
-  String? initialPayload;
-  if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-    initialPayload = notificationAppLaunchDetails!.notificationResponse?.payload;
-    print('アプリが通知から起動されました。ペイロード: $initialPayload');
-  }
-
-  runApp(MyApp(initialPayload: initialPayload));
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  final String? initialPayload;
-
-  const MyApp({Key? key, this.initialPayload}) : super(key: key);
-
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  final NotificationService _notificationService = NotificationService();
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeNotifications();
-  }
-
-  void _initializeNotifications() {
-    _notificationService.setOnNotificationTap((String? payload) {
-      if (payload != null) {
-        final int eventId = int.parse(payload);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => GetItemListPage(eventId: eventId),
-          ));
-        });
-      }
-    });
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: NavigationService.navigatorKey,
       title: 'Your App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -78,11 +36,39 @@ class _MyAppState extends State<MyApp> {
             return CircularProgressIndicator();
           }
           if (snapshot.hasData && snapshot.data != null) {
-            return HomePage(title: 'ホーム');
+            return NotificationInitializer(child: HomePage(title: 'ホーム'));
           }
           return SignUpPage();
         },
       ),
     );
+  }
+}
+
+class NotificationInitializer extends StatefulWidget {
+  final Widget child;
+
+  const NotificationInitializer({Key? key, required this.child}) : super(key: key);
+
+  @override
+  _NotificationInitializerState createState() => _NotificationInitializerState();
+}
+
+class _NotificationInitializerState extends State<NotificationInitializer> {
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications();
+  }
+
+  void _initializeNotifications() async {
+    await _notificationService.init(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
