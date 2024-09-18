@@ -7,16 +7,11 @@ import 'services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'feature/get_item_list/get_item_list.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
-
-  await dotenv.load(fileName: ".env");
-
 
   runApp(MyApp());
 }

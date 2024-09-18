@@ -1,12 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../services/navigation_service.dart';
 
 class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
+
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  Future<void> init() async {
+  Future<void> init(BuildContext context) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsIOS =
@@ -18,7 +23,17 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse details) {
+        _onSelectNotification(context, details.payload);
+      },
     );
+  }
+
+  void _onSelectNotification(BuildContext context, String? payload) {
+    if (payload != null) {
+      final int eventId = int.parse(payload);
+      NavigationService.navigateToGetItemListPage(eventId);
+    }
   }
 
   Future<void> setOnNotificationTap(Function(String?) onTap) async {
@@ -84,18 +99,16 @@ class NotificationService {
     );
   }
 
-    void _onDidReceiveNotificationResponse(NotificationResponse response) {
-        print('通知タップ時のコールバックが呼ばれました。');
-        final String? payload = response.payload;
-        print('通知がタップされました。ペイロード: $payload');
-        if (payload != null) {
-            _handleNotificationTap(int.parse(payload));
-        }
+  void _onDidReceiveNotificationResponse(NotificationResponse response) {
+    final String? payload = response.payload;
+    if (payload != null) {
+      final int eventId = int.parse(payload);
+      NavigationService.navigateToGetItemListPage(eventId);
     }
+  }
 
- void _handleNotificationTap(int eventId) {
-  print('_handleNotificationTap が呼び出されました。eventId: $eventId');
-  NavigationService.navigateToGetItemListPage(eventId);
-}
-
+  void _handleNotificationTap(int eventId) {
+    print('_handleNotificationTap が呼び出されました。eventId: $eventId');
+    NavigationService.navigateToGetItemListPage(eventId);
+  }
 }
