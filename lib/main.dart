@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 import 'package:firebase_messaging/firebase_messaging.dart';  // 追加
 import 'package:wasure_mobaile_futter/firebase_options.dart';
@@ -13,11 +14,36 @@ import 'feature/get_item_list/get_item_list.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
+
+   bool serviceEnabled;
+    LocationPermission permission;
+
+    print("hoge");
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+        'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
   Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform
   );
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
 
   runApp(MyApp());
 }
