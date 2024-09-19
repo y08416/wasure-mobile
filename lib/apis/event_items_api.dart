@@ -51,6 +51,21 @@ class EventItemsApi {
     }).toList();
   }
 
+  Future<String> getEventName(int eventId) async {
+    try {
+      final response = await _supabase
+          .from('Event')
+          .select('name')
+          .eq('event_id', eventId)
+          .single();
+      
+      return response['name'] as String;
+    } catch (e) {
+      print('イベント名の取得中にエラーが発生しました: $e');
+      return '';
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getEventsWithItems(String userId) async {
     try {
       final response = await _supabase
@@ -96,6 +111,58 @@ class EventItemsApi {
         .eq('event_id', eventId);
   }
 
+    Future<void> updateEventName(int eventId, String newName) async {
+    try {
+      await _supabase
+          .from('Event')
+          .update({'name': newName})
+          .eq('event_id', eventId);
+    } catch (e) {
+      print('イベント名の更新中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+
+Future<Map<String, dynamic>> addItemToEvent(int eventId, String itemName) async {
+  try {
+    final response = await _supabase.from('Item').insert({
+      'name': itemName,
+      'event_id': eventId,
+      'is_checked': false,
+    }).select().single();
+    
+    return response;
+  } catch (e) {
+    print('アイテムの追加中にエラーが発生しました: $e');
+    rethrow;
+  }
+}
+
+  Future<void> updateItemStatus(int eventId, String itemName, bool isCompleted) async {
+  try {
+    await _supabase
+        .from('Item')
+        .update({'is_checked': isCompleted})
+        .eq('event_id', eventId)
+        .eq('name', itemName);
+  } catch (e) {
+    print('アイテムのステータス更新中にエラーが発生しました: $e');
+    rethrow;
+  }
+}
+
+    Future<void> removeItemFromEvent(int eventId, int itemId) async {
+      try {
+        await _supabase
+            .from('Item')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('item_id', itemId);
+      } catch (e) {
+        print('アイテムの削除中にエラーが発生しました: $e');
+        rethrow;
+      }
+    }
   Future<bool> updateReminderDate(String eventId, DateTime newDateTime) async {
     try {
       final response = await _supabase
@@ -135,5 +202,65 @@ class EventItemsApi {
   String _formatTime(DateTime? date) {
     if (date == null) return '';
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+    Future<Map<String, dynamic>> getEventById(int eventId) async {
+    try {
+      final response = await _supabase
+          .from('Event')
+          .select()
+          .eq('event_id', eventId)
+          .single();
+      return response;
+    } catch (e) {
+      print('イベントの取得中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateEventAndItems(
+    int eventId,
+    String eventName,
+    List<String> itemNames,
+    String userId,
+    DateTime? eventDate,
+  ) async {
+    try {
+      // イベントの更新
+      await _supabase.from('Event').update({
+        'name': eventName,
+        'reminder_date': eventDate?.toIso8601String(),
+        'user_id': userId,
+      }).eq('event_id', eventId);
+
+      // 既存のアイテムを取得
+      final existingItems = await _supabase
+          .from('Item')
+          .select('item_id, name')
+          .eq('event_id', eventId);
+
+      // 新しいアイテムを追加
+      for (var itemName in itemNames) {
+        if (!existingItems.any((item) => item['name'] == itemName)) {
+          await _supabase.from('Item').insert({
+            'name': itemName,
+            'event_id': eventId,
+          });
+        }
+      }
+
+      // 削除されたアイテムを削除
+      for (var existingItem in existingItems) {
+        if (!itemNames.contains(existingItem['name'])) {
+          await _supabase
+              .from('Item')
+              .delete()
+              .eq('item_id', existingItem['item_id']);
+        }
+      }
+    } catch (e) {
+      print('イベントとアイテムの更新中にエラーが発生しました: $e');
+      rethrow;
+    }
   }
 }

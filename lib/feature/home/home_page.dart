@@ -94,10 +94,11 @@ appBar: AppBar(
                 iconPath: 'assets/setting.png',
                 color: Colors.green,
                 onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NotificationPage()));
+                  // Navigator.push(
+                    // context,
+                    // MaterialPageRoute(builder: (context) => const SugestIngredients()),
+                  // );
+                  // 共同機能へのナビゲーション
                 },
               ),
               HomeCard(
