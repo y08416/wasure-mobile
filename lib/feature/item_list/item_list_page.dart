@@ -144,6 +144,7 @@ class _ItemListPageState extends State<ItemListPage> {
                    style: ElevatedButton.styleFrom(
                    minimumSize: const Size(double.infinity, 70), // 幅と高さを設定
                    textStyle: const TextStyle(fontSize: 20), // テキストサイズを設定
+                   backgroundColor: const Color(0xFFD6BDF0),
     ),
                     child: const Text('イベントと持ち物を追加'),
                   ),
