@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../shared/apis/supabase_client.dart';
 import '../apis/location_api.dart';
@@ -48,6 +49,16 @@ class AuthAPI {
 
       if (res.user != null) {
         try {
+          // 位置情報の権限を確認
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied ||
+              permission == LocationPermission.deniedForever) {
+            permission = await Geolocator.requestPermission();
+            if (permission == LocationPermission.denied ||
+                permission == LocationPermission.deniedForever) {
+              throw Exception('位置情報の権限が拒否されました');
+            }
+          }
           await LocationAPI.updateLocation();
         } catch (e) {
           print('位置情報の更新に失敗しました: $e');

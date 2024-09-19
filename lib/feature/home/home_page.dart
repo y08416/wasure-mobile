@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wasure_mobaile_futter/feature/home/components/home_card.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/item_list_page.dart';
+import 'package:wasure_mobaile_futter/feature/notification/notification.dart';
 import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
 import 'package:wasure_mobaile_futter/apis/auth_api.dart';
 import 'package:wasure_mobaile_futter/feature/auth/login_page.dart';
@@ -61,7 +62,8 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ReminderPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ReminderPage()),
                   );
                 },
               ),
@@ -72,7 +74,8 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ItemListPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ItemListPage()),
                   );
                 },
               ),
@@ -81,7 +84,10 @@ class _HomePageState extends State<HomePage> {
                 iconPath: 'assets/setting.png',
                 color: Colors.green,
                 onTap: () {
-                  // 共同機能へのナビゲーション
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NotificationPage()));
                 },
               ),
               HomeCard(
@@ -128,25 +134,25 @@ class _HomePageState extends State<HomePage> {
       body: _buildHomeContent(), // 直接_buildHomeContent()を呼び出す
       bottomNavigationBar: Container(
         height: 70,
-        child:BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work),
-            label: '持ち物',
-          ),
-           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'ホーム',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.alarm),
-            label: 'リマインド',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor:Color(0xFFE3DCDC),//背景色
-      ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.work),
+              label: '持ち物',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'ホーム',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.alarm),
+              label: 'リマインド',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Color(0xFFE3DCDC), //背景色
+        ),
       ),
     );
   }

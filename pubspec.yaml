@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^1.10.14
-  flutter_local_notifications: ^13.0.0
+  flutter_local_notifications: ^17.2.2
   intl: ^0.18.1
   lucide_icons: ^0.257.0
   font_awesome_flutter: ^10.1.0
