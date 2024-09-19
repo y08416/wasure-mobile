@@ -8,6 +8,10 @@ import 'package:wasure_mobaile_futter/feature/item_list/add_event_item_list_page
 import '../../apis/event_items_api.dart';
 import 'package:intl/intl.dart';
 import 'package:wasure_mobaile_futter/feature/get_item_list/get_item_list.dart';
+import 'package:wasure_mobaile_futter/feature/item_list/components/event_card.dart';
+import 'dart:math';
+import 'package:flutter/material.dart';
+
 
 class ItemListPage extends StatefulWidget {
   const ItemListPage({Key? key}) : super(key: key);
@@ -59,8 +63,20 @@ class _ItemListPageState extends State<ItemListPage> {
     }
   }
 
+
+  //取得シテルノデケサナイ
+
   @override
   Widget build(BuildContext context) {
+        // 固定の色リストを作成
+    final List<Color> colors = [
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.orange,
+      Colors.purple,
+      Colors.yellow,
+    ];
     return Scaffold(
       appBar: AppBar(
         title: const Text('イベントリスト'),
@@ -83,47 +99,32 @@ class _ItemListPageState extends State<ItemListPage> {
           : Column(
               children: [
                 Expanded(
-                  child: ListView.builder(
+                  child: GridView.builder(
+                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 2列表示に変更
+                    crossAxisSpacing: 10.0, // 列間のスペース
+                    mainAxisSpacing: 10.0, // 行間のスペース
+                    childAspectRatio: 1.0, // 各アイテムの縦横比
+                  ),
                     itemCount: events.length,
                     itemBuilder: (context, index) {
                       final event = events[index];
-                      return ListTile(
-                        title: Text(event['name']),
-                        subtitle: Text(
-                          '日付: ${event['reminder_date'] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(event['reminder_date'])) : '未設定'}',
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.calendar_today),
-                              onPressed: () async {
-                                final DateTime? pickedDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: event['reminder_date'] != null
-                                      ? DateTime.parse(event['reminder_date'])
-                                      : DateTime.now(),
-                                  firstDate: DateTime(2000),
-                                  lastDate: DateTime(2101),
-                                );
-                                if (pickedDate != null) {
-                                  _updateEventDate(event['event_id'], pickedDate);
-                                }
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.arrow_forward),
-                              onPressed: () {
-                                Navigator.push(
+                         // 色リストからランダムに選択
+                      final randomColor = colors[Random().nextInt(colors.length)];
+                      return EventCard(
+                        key: UniqueKey(), // ユニークなキーを追加 
+                        title:  event['name'],
+                        iconPath: 'assets/bell.png', // PNGアイコンのパス
+                        width: 10, // 横幅を親の幅に合わせる
+                        height: 200, // 高さを設定
+                        color: randomColor, // ランダムな色を設定
+                        onTap: () {
+                          Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => GetItemListPage(eventId: int.parse(event['event_id'].toString())),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                                  ),                          );
+                       },
                       );
                     },
                   ),
@@ -136,8 +137,14 @@ class _ItemListPageState extends State<ItemListPage> {
                         context,
                         MaterialPageRoute(builder: (context) => const AddEventItemPage()),
                       );
+                   setState(() {
                       _loadEvents(); // 新しいイベントを追加した後、リストを更新
-                    },
+                    });
+                  },
+                   style: ElevatedButton.styleFrom(
+                   minimumSize: const Size(double.infinity, 70), // 幅と高さを設定
+                   textStyle: const TextStyle(fontSize: 20), // テキストサイズを設定
+    ),
                     child: const Text('イベントと持ち物を追加'),
                   ),
                 ),
