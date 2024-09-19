@@ -1,6 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 import 'package:firebase_messaging/firebase_messaging.dart';  // 追加
+import 'package:wasure_mobaile_futter/firebase_options.dart';
 import 'feature/auth/sign_up_page.dart';
 import 'feature/home/home_page.dart';
 import 'shared/apis/supabase_client.dart';
@@ -11,6 +13,9 @@ import 'feature/get_item_list/get_item_list.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform
+  );
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
 
