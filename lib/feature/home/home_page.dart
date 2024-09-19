@@ -81,6 +81,10 @@ class _HomePageState extends State<HomePage> {
                 iconPath: 'assets/setting.png',
                 color: Colors.green,
                 onTap: () {
+                  // Navigator.push(
+                    // context,
+                    // MaterialPageRoute(builder: (context) => const SugestIngredients()),
+                  // );
                   // 共同機能へのナビゲーション
                 },
               ),
