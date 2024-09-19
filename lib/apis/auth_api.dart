@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../shared/apis/supabase_client.dart';
+import '../apis/location_api.dart';
 
 class AuthAPI {
   late final SupabaseClient _supabase;
@@ -44,10 +45,29 @@ class AuthAPI {
         email: email,
         password: password,
       );
+
+      if (res.user != null) {
+        try {
+          await LocationAPI.updateLocation();
+        } catch (e) {
+          print('位置情報の更新に失敗しました: $e');
+          // 位置情報の更新に失敗してもログイン処理は継続
+        }
+      }
       return res;
     } catch (e) {
       print('Supabase sign in error: $e');
       rethrow;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _supabase.auth.signOut();
+      print('サインアウトに成功しました');
+    } catch (e) {
+      print('サインアウトエラー: $e');
+      throw Exception('サインアウトに失敗しました');
     }
   }
 }
