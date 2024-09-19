@@ -125,16 +125,18 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: _buildHomeContent(),
-      bottomNavigationBar: BottomNavigationBar(
+      body: _buildHomeContent(), // 直接_buildHomeContent()を呼び出す
+      bottomNavigationBar: Container(
+        height: 70,
+        child:BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.work),
+            label: '持ち物',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '月毎カレンダー',
+           BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'ホーム',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.alarm),
@@ -143,6 +145,8 @@ class _HomePageState extends State<HomePage> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        backgroundColor:Color(0xFFE3DCDC),//背景色
+      ),
       ),
     );
   }

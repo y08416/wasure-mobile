@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:your_app_name/feature/auth/sign_up_page.dart'
+import 'package:wasure_mobaile_futter/feature/auth/sign_up_page.dart';
 
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
