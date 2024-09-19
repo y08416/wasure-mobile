@@ -123,17 +123,20 @@ class EventItemsApi {
     }
   }
 
-  Future<void> addItemToEvent(int eventId, String itemName) async {
-    try {
-      await _supabase.from('Item').insert({
-        'name': itemName,
-        'event_id': eventId,
-      });
-    } catch (e) {
-      print('アイテムの追加中にエラーが発生しました: $e');
-      rethrow;
-    }
+Future<Map<String, dynamic>> addItemToEvent(int eventId, String itemName) async {
+  try {
+    final response = await _supabase.from('Item').insert({
+      'name': itemName,
+      'event_id': eventId,
+      'is_checked': false,
+    }).select().single();
+    
+    return response;
+  } catch (e) {
+    print('アイテムの追加中にエラーが発生しました: $e');
+    rethrow;
   }
+}
 
   Future<void> updateItemStatus(int eventId, String itemName, bool isCompleted) async {
   try {
@@ -148,19 +151,18 @@ class EventItemsApi {
   }
 }
 
-  Future<void> removeItemFromEvent(int eventId, String itemName) async {
-    try {
-      await _supabase
-          .from('Item')
-          .delete()
-          .eq('event_id', eventId)
-          .eq('name', itemName);
-    } catch (e) {
-      print('アイテムの削除中にエラーが発生しました: $e');
-      rethrow;
+    Future<void> removeItemFromEvent(int eventId, int itemId) async {
+      try {
+        await _supabase
+            .from('Item')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('item_id', itemId);
+      } catch (e) {
+        print('アイテムの削除中にエラーが発生しました: $e');
+        rethrow;
+      }
     }
-  }
-
   Future<bool> updateReminderDate(String eventId, DateTime newDateTime) async {
     try {
       final response = await _supabase
