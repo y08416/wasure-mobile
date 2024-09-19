@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
-import 'package:firebase_messaging/firebase_messaging.dart';  // 追加
+import 'package:firebase_messaging/firebase_messaging.dart'; // 追加
+import 'package:wasure_mobaile_futter/feature/notification/notification.dart';
 import 'package:wasure_mobaile_futter/firebase_options.dart';
 import 'feature/auth/sign_up_page.dart';
 import 'feature/home/home_page.dart';
@@ -11,12 +13,10 @@ import 'services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'feature/get_item_list/get_item_list.dart';
+import 'package:wasure_mobaile_futter/feature/notification/notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
 
    bool serviceEnabled;
     LocationPermission permission;
@@ -41,9 +41,11 @@ void main() async {
         'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-  Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform
-  );
+
+  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Tokyo'));
 
   runApp(MyApp());
 }
@@ -57,7 +59,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: FutureBuilder<User?>(
-        future: SupabaseClientWrapper.instance.then((client) => client.auth.currentUser),
+        future: SupabaseClientWrapper.instance
+            .then((client) => client.auth.currentUser),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
@@ -75,10 +78,12 @@ class MyApp extends StatelessWidget {
 class NotificationInitializer extends StatefulWidget {
   final Widget child;
 
-  const NotificationInitializer({Key? key, required this.child}) : super(key: key);
+  const NotificationInitializer({Key? key, required this.child})
+      : super(key: key);
 
   @override
-  _NotificationInitializerState createState() => _NotificationInitializerState();
+  _NotificationInitializerState createState() =>
+      _NotificationInitializerState();
 }
 
 class _NotificationInitializerState extends State<NotificationInitializer> {
