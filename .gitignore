@@ -41,3 +41,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+lib/main.dart
+windows/flutter/generated_plugins.cmake
+pubspec.lock
+pubspec.yaml
+lib/feature/reminder/reminder.dart
+lib/services/location_check_service.dart
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/generated_plugin_registrant.cc

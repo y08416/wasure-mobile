@@ -245,13 +245,13 @@ class _ReminderPageState extends State<ReminderPage> {
                                         width: 60,
                                         height: 60,
                                         decoration: BoxDecoration(
-                                          color: reminder.isCompleted ? Colors.green[100] : Colors.pink[100],
+                                          color: reminder.isCompleted ? const Color.fromARGB(255, 235, 15, 15) : const Color.fromARGB(255, 212, 212, 212),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Center(
                                           child: reminder.isCompleted
-                                              ? Icon(LucideIcons.bell, color: Colors.green, size: 30)
-                                              : Icon(LucideIcons.bell, color: Colors.pink, size: 30), // カテゴリーアイコンの代わりにベルアイコンを使用
+                                              ? Icon(LucideIcons.bell, color: const Color.fromARGB(255, 232, 226, 226), size: 30)
+                                              : Icon(LucideIcons.bell, color: const Color.fromARGB(255, 22, 22, 22), size: 30), // カテゴリーアイコンの代わりにベルアイコンを使用
                                         ),
                                       ),
                                     ),

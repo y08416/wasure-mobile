@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   List<Widget>? _widgetOptions;
   late AuthAPI _authAPI;
 
@@ -34,15 +34,25 @@ class _HomePageState extends State<HomePage> {
   void _initializeWidgetOptions() {
     setState(() {
       _widgetOptions = <Widget>[
+        const ItemListPage(),
         _buildHomeContent(),
-        const Text('月毎カレンダー画面'),
-        const Text('リマインド画面'),
+        const ReminderPage(),
       ];
     });
   }
 
   Widget _buildHomeContent() {
-    return CustomScrollView(
+    return Scaffold(
+appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
+      ),
+    body: CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(16),
@@ -102,6 +112,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
+    )
     );
   }
 
@@ -122,16 +133,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: _buildHomeContent(), // 直接_buildHomeContent()を呼び出す
+
+      body: _widgetOptions![_selectedIndex],
       bottomNavigationBar: Container(
         height: 70,
         child: BottomNavigationBar(
