@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
+import 'package:firebase_messaging/firebase_messaging.dart';  // 追加
 import 'feature/auth/sign_up_page.dart';
 import 'feature/home/home_page.dart';
 import 'shared/apis/supabase_client.dart';
@@ -59,7 +60,37 @@ class _NotificationInitializerState extends State<NotificationInitializer> {
   }
 
   void _initializeNotifications() async {
+    // 通知サービスの初期化
     await _notificationService.init(context);
+
+    // FCM の通知権限リクエスト
+    final messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    // FCMトークンの取得
+    String? token = await messaging.getToken();
+    if (token != null) {
+      print('FCMトークン: $token');
+      // サーバーにトークンを送信したり、ローカルに保存したりする処理を追加
+      // await sendTokenToServer(token);
+    } else {
+      print('FCMトークンの取得に失敗しました');
+    }
+
+    // トークンがリフレッシュされたときのリスナーを設定
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      print('FCMトークンがリフレッシュされました: $newToken');
+      // リフレッシュされたトークンをサーバーに送信したり、ローカルに保存したりする処理
+      // await sendTokenToServer(newToken);
+    });
   }
 
   @override
