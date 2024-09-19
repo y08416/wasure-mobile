@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "511274380247",
+    "project_id": "wasure-mobile",
+    "storage_bucket": "wasure-mobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:511274380247:android:015c6efbf5ce64ae9a7992",
+        "android_client_info": {
+          "package_name": "com.example.wasureMobaileFutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuyJcXJ3bCAZIxVfX1I1pU8nD8-oWZ61I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:511274380247:android:aab7fce01fa6f9b39a7992",
+        "android_client_info": {
+          "package_name": "com.example.wasure_mobaile_futter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuyJcXJ3bCAZIxVfX1I1pU8nD8-oWZ61I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
