@@ -90,14 +90,14 @@ appBar: AppBar(
                 },
               ),
               HomeCard(
-                title: '共同',
-                iconPath: 'assets/setting.png',
+                title: 'アラート',
+                iconPath: 'assets/remaind.png',
                 color: Colors.green,
                 onTap: () {
-                  // Navigator.push(
-                    // context,
-                    // MaterialPageRoute(builder: (context) => const SugestIngredients()),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => NotificationPage()),
+                  );
                   // 共同機能へのナビゲーション
                 },
               ),

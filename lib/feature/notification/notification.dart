@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../apis/event_items_api.dart';
 
 class NotificationPage extends StatefulWidget {
   @override
@@ -10,15 +11,25 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _MyAppState extends State<NotificationPage> {
+  final EventItemsApi _eventItemsApi = EventItemsApi();
   Position? _currentPosition;
   Timer? _timer;
-
+  List<Map<String, dynamic>> item = [];
   @override
   void initState() {
     super.initState();
     // 10秒ごとに位置情報を取得するタイマーを設定
     _timer = Timer.periodic(
         Duration(seconds: 10), (Timer t) => _getCurrentLocation());
+
+    loadItem();
+  }
+
+  Future<void> loadItem()async {
+     final get_item = await _eventItemsApi.getItemsForEvent(37,"f96b2a3e-e145-4f7d-8e26-3a9cdf6ad526");
+    setState(() {
+      item = get_item;
+    });
   }
 
   @override
@@ -84,7 +95,7 @@ class _MyAppState extends State<NotificationPage> {
     // 200メートル以上離れているかを確認
     if (distanceInMeters > 200) {
       print('自宅から200m以上離れています');
-      await sendNotification('距離通知', '自宅から200m以上離れています');
+      await sendNotification('忘れ物があります', '${item.map((i) => i['name']).join(', \n')}');
     } else {
       print('自宅から200m以内です');
     }
@@ -104,13 +115,10 @@ class _MyAppState extends State<NotificationPage> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('10秒ごとに位置情報を取得'),
+          title: Text(''),
         ),
         body: Center(
-          child: _currentPosition != null
-              ? Text(
-                  '緯度: ${_currentPosition!.latitude}, 経度: ${_currentPosition!.longitude}')
-              : Text('位置情報を取得中...'),
+          child: Image(image: AssetImage('assets/remaind.png'))
         ),
       ),
     );
