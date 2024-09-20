@@ -78,7 +78,11 @@ flutter:
     - assets/setting_1.png
     - assets/setting.png
     - assets/travel-agency.png
-    - .env
+    - assets/Bag (1).png
+    - assets/shopping_2.png
+    - assets/Travel.png
+    - assets/Bag (2).png
+    
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
