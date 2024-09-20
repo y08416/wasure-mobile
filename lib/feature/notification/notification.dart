@@ -115,7 +115,7 @@ class _MyAppState extends State<NotificationPage> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('10秒ごとに位置情報を取得'),
+          title: Text(''),
         ),
         body: Center(
           child: Image(image: AssetImage('assets/remaind.png'))
