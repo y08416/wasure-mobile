@@ -118,10 +118,7 @@ class _MyAppState extends State<NotificationPage> {
           title: Text('10秒ごとに位置情報を取得'),
         ),
         body: Center(
-          child: _currentPosition != null
-              ? Text(
-                  '${item.map((i) => i['name']).join(', \n')}  緯度: ${_currentPosition!.latitude}, 経度: ${_currentPosition!.longitude}')
-              : Text('位置情報を取得中...'),
+          child: Image(image: AssetImage('assets/remaind.png'))
         ),
       ),
     );
