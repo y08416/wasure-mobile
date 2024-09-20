@@ -2,16 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:wasure_mobaile_futter/feature/reminder/reminder.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/add_event_item_list_page.dart';
 import '../../apis/event_items_api.dart';
-import 'package:intl/intl.dart';
+import 'dart:math';
 import 'package:wasure_mobaile_futter/feature/get_item_list/get_item_list.dart';
 import 'package:wasure_mobaile_futter/feature/item_list/components/event_card.dart';
-import 'dart:math';
-import 'package:flutter/material.dart';
-
 
 class ItemListPage extends StatefulWidget {
   const ItemListPage({Key? key}) : super(key: key);
@@ -77,6 +73,16 @@ class _ItemListPageState extends State<ItemListPage> {
       Colors.purple,
       Colors.yellow,
     ];
+     // 固定の画像リストを作成
+    final List<String> imagePaths = [
+      'assets/bell.png',
+      'assets/Bag (1).png',
+      'assets/shopping_2.png',
+      'assets/travel-agency.png',
+      'assets/Travel.png',
+      'assets/Bag (2).png',
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('イベントリスト'),
@@ -110,11 +116,14 @@ class _ItemListPageState extends State<ItemListPage> {
                     itemBuilder: (context, index) {
                       final event = events[index];
                          // 色リストからランダムに選択
-                      final randomColor = colors[Random().nextInt(colors.length)];
+                      final randomColor = colors[index%colors.length];
+                       // 画像リストからランダムに選択
+                      final randomImage = imagePaths[index%imagePaths.length];
+                    
                       return EventCard(
                         key: UniqueKey(), // ユニークなキーを追加 
                         title:  event['name'],
-                        iconPath: 'assets/bell.png', // PNGアイコンのパス
+                        iconPath: randomImage, // PNGアイコンのパス
                         width: 10, // 横幅を親の幅に合わせる
                         height: 200, // 高さを設定
                         color: randomColor, // ランダムな色を設定
